@@ -10,7 +10,8 @@
 
 
 #define DEBOUNCE_PERIOD 10
-
+#define KEY_DELAY 40
+int input_count = 0;
 // timer objects for animations:
 typedef struct {
   uint8_t pin; // Teensy pin number
@@ -19,7 +20,8 @@ typedef struct {
 } ButtonMap;
 
 
-ButtonMap panel_buttons [] {
+#define NUMBER_OF_BUTTONS 8
+ButtonMap panel_buttons [NUMBER_OF_BUTTONS] {
   { 2, KEY_F5,  Bounce() },
   { 3, KEY_F6,  Bounce() },
   { 4, KEY_F7,  Bounce() },
@@ -39,34 +41,32 @@ void setup() {
   delay(1000);
   Serial.println("start!");
 
-
-// digitalWrite(   panel_buttons[0].pin ,HIGH);
-//
-  for (int input_count=0; input_count<8; input_count++){
-  //  pinMode( panel_buttons[0].pin ,INPUT);
-    pinMode( panel_buttons[0].pin, INPUT_PULLUP);
-    panel_buttons[0].bounce.attach(panel_buttons[0].pin);
-    panel_buttons[0].bounce.interval(DEBOUNCE_PERIOD);
+// populate the Bounce timer thingies in the panel button array
+  for (input_count=0; input_count<NUMBER_OF_BUTTONS; input_count++){
+    pinMode( panel_buttons[input_count].pin, INPUT_PULLUP);
+    panel_buttons[input_count].bounce.attach(panel_buttons[input_count].pin);
+    panel_buttons[input_count].bounce.interval(DEBOUNCE_PERIOD);
   }
 
 }
 
 void loop() {
+  for (input_count=0; input_count<NUMBER_OF_BUTTONS; input_count++){
 
-  panel_buttons[0].bounce.update(); // not scanning shole array - just first button
-//  panel_buttons[0].state = panel_buttons[0].bounce.rose();
+    panel_buttons[input_count].bounce.update(); // update each button
+    if ( panel_buttons[input_count].bounce.fell()){ // see if it was pressed
+       Keyboard.print("But ");
+      Keyboard.println(input_count);
+      /*
+      Keyboard.press(panel_buttons[input_count].keycode);
+      delay( KEY_DELAY);  // typing too rapidly can overwhelm a PC
+      Keyboard.release(panel_buttons[input_count].keycode);
+      delay( KEY_DELAY);  // typing too rapidly can overwhelm a PC
+      */
+
+    }
+}
 /*
-  if (HIGH == digitalRead(panel_buttons[0].pin)){
-    Serial.println("PRESS");
-  } else {
-    Serial.println("OPEN");
-  }
-*/
-  if ( panel_buttons[0].bounce.fell()){
-  // Your computer will receive these characters from a USB keyboard.
-//  Keyboard.print("Hello World ");
-//  Keyboard.println(count);
-
   // You can also send to the Arduino Serial Monitor
   Serial.println(count);
    // increment the count
@@ -74,8 +74,8 @@ void loop() {
 } else {
   //  Serial.println("nope");
 }
+*/
 
 
-  // typing too rapidly can overwhelm a PC
-  delay(40);
+  delay(20);
 }
