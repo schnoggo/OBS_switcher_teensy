@@ -11,7 +11,7 @@
 int input_count = 0;
 // timer objects for animations:
 typedef struct {
-  uint8_t pin; // Teensy pin number
+  uint8_t pin; // Teensy pin number for input
   uint8_t LED;
   int keycode; // Key code to send when above pin is closed
   Bounce bounce; // Using the Bounce timer library - this is a bounce object
@@ -20,14 +20,15 @@ typedef struct {
 
 #define NUMBER_OF_BUTTONS 8
 ButtonMap panel_buttons [NUMBER_OF_BUTTONS] {
+  // input p[in, out LED pin, key, Bounce object]
   { 2, 23, KEY_F5,  Bounce() },
   { 3, 22, KEY_F6,  Bounce() },
-  { 4, 21, KEY_F7,  Bounce() },
-  { 5, 20, KEY_F8,  Bounce() },
-  { 6, 17, KEY_F9,  Bounce() },
-  { 7, 16, KEY_F10, Bounce() },
-  { 8, 15, KEY_F11, Bounce() },
-  { 9, 14, KEY_F12, Bounce() }
+  { 4, 21, KEY_F7,  Bounce() }, //
+  { 5, 20, KEY_F8,  Bounce() }, //
+  { 6, 14, KEY_F9,  Bounce() },
+  { 7, 15, KEY_F10, Bounce() },
+  { 8, 16, KEY_F11, Bounce() },
+  { 9, 17, KEY_F12, Bounce() }
 };
 
 int count = 0;
@@ -57,10 +58,10 @@ void loop() {
 
     panel_buttons[input_count].bounce.update(); // update each button
     if ( panel_buttons[input_count].bounce.fell()){ // see if it was pressed
-      /*
-       Keyboard.print("But ");
-      Keyboard.println(input_count);
-      */
+
+//       Serial.print("But ");
+  //    Serial.println(input_count);
+
       SingleLED(input_count);
       Keyboard.press(panel_buttons[input_count].keycode);
       delay( KEY_DELAY);  // typing too rapidly can overwhelm a PC
@@ -88,9 +89,9 @@ void SingleLED (uint8_t button_number) {
 
   for (int this_LED=0; this_LED<NUMBER_OF_BUTTONS; this_LED++){
     if (this_LED == button_number){
-        digitalWrite(panel_buttons[button_number].LED, HIGH);
+        digitalWrite(panel_buttons[this_LED].LED, HIGH);
     } else {
-        digitalWrite(panel_buttons[button_number].LED, HIGH);
+        digitalWrite(panel_buttons[this_LED].LED, LOW);
     }
   }
 
