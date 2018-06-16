@@ -13,22 +13,39 @@ int input_count = 0;
 typedef struct {
   uint8_t pin; // Teensy pin number for input
   uint8_t LED;
+  int modifier_key;
   int keycode; // Key code to send when above pin is closed
   Bounce bounce; // Using the Bounce timer library - this is a bounce object
 } ButtonMap;
 
 
-#define NUMBER_OF_BUTTONS 8
+#define NUMBER_OF_BUTTONS 14
+/* common modifier keys:
+MODIFIERKEY_CTRL	MODIFIERKEY_RIGHT_CTRL	- Control Key
+MODIFIERKEY_SHIFT	MODIFIERKEY_RIGHT_SHIFT	- Shift Key
+MODIFIERKEY_ALT	MODIFIERKEY_RIGHT_ALT	- Alt Key
+MODIFIERKEY_GUI	MODIFIERKEY_RIGHT_GUI	- Windows (PC) or Clover (Mac)
+Use 0 if no modifier
+
+KEY_MEDIA_RECORD
+*/
 ButtonMap panel_buttons [NUMBER_OF_BUTTONS] {
-  // input p[in, out LED pin, key, Bounce object]
-  { 2, 23, KEY_F5,  Bounce() },
-  { 3, 22, KEY_F6,  Bounce() },
-  { 4, 21, KEY_F7,  Bounce() }, //
-  { 5, 20, KEY_F8,  Bounce() }, //
-  { 6, 14, KEY_F9,  Bounce() },
-  { 7, 15, KEY_F10, Bounce() },
-  { 8, 16, KEY_F11, Bounce() },
-  { 9, 17, KEY_F12, Bounce() }
+  // input pin, out LED pin, modifier key, key, Bounce object]
+  { 2, 23, MODIFIERKEY_RIGHT_ALT, KEY_F5,  Bounce() }, // col 1
+  { 3, 22, MODIFIERKEY_RIGHT_ALT, KEY_F6,  Bounce() }, // col 1
+  { 4, 21, MODIFIERKEY_RIGHT_ALT, KEY_F7,  Bounce() }, // col 1
+  { 5, 20, MODIFIERKEY_RIGHT_ALT, KEY_F8,  Bounce() }, // col 1
+  { 6, 17, MODIFIERKEY_RIGHT_ALT, KEY_F9,  Bounce() }, // col 2
+  { 7, 16, MODIFIERKEY_RIGHT_ALT, KEY_F10, Bounce() }, // col 2
+  { 8, 15, MODIFIERKEY_RIGHT_ALT, KEY_F11, Bounce() }, // col 2
+  { 9, 14, MODIFIERKEY_RIGHT_ALT, KEY_F12, Bounce() }, // col 2
+  { 10, 0, MODIFIERKEY_SHIFT, KEY_F4, Bounce() }, // col 3
+  { 11, 0, MODIFIERKEY_SHIFT, KEY_F6, Bounce() }, // col 3
+  { 12, 0, MODIFIERKEY_SHIFT, KEY_F7, Bounce() }, // col 3
+  { 28, 0, MODIFIERKEY_SHIFT, KEY_F8, Bounce() }, // col 3
+  { 29, 0, MODIFIERKEY_CTRL, KEY_F10, Bounce() },
+  { 30, 0, MODIFIERKEY_CTRL, KEY_F11, Bounce() },
+
 };
 
 int count = 0;
@@ -47,8 +64,10 @@ void setup() {
     panel_buttons[input_count].bounce.interval(DEBOUNCE_PERIOD);
 
     // outputs:
-    pinMode(panel_buttons[input_count].LED, OUTPUT);
-    PanelLED(input_count, LOW);
+    if (0 != panel_buttons[input_count].LED){
+      pinMode(panel_buttons[input_count].LED, OUTPUT);
+      PanelLED(input_count, LOW);
+    }
   }
 
 }
@@ -62,12 +81,22 @@ void loop() {
 //       Serial.print("But ");
   //    Serial.println(input_count);
 
+  // light the LED for this button:
       SingleLED(input_count);
+  // press some buttons:
+      if(0 != panel_buttons[input_count].modifier_key){
+        Keyboard.press(panel_buttons[input_count].modifier_key);
+        delay( KEY_DELAY);
+      }
       Keyboard.press(panel_buttons[input_count].keycode);
       delay( KEY_DELAY);  // typing too rapidly can overwhelm a PC
       Keyboard.release(panel_buttons[input_count].keycode);
-      delay( KEY_DELAY);  // typing too rapidly can overwhelm a PC
+      delay( KEY_DELAY);
 
+      if(0 != panel_buttons[input_count].modifier_key){
+        Keyboard.release(panel_buttons[input_count].modifier_key);
+        delay( KEY_DELAY);
+      }
 
     }
 }
@@ -87,12 +116,13 @@ void PanelLED( uint8_t button_number, int state){
 
 void SingleLED (uint8_t button_number) {
 
-  for (int this_LED=0; this_LED<NUMBER_OF_BUTTONS; this_LED++){
-    if (this_LED == button_number){
-        digitalWrite(panel_buttons[this_LED].LED, HIGH);
-    } else {
-        digitalWrite(panel_buttons[this_LED].LED, LOW);
+  if (0 != panel_buttons[button_number].LED){
+    for (int this_LED=0; this_LED<NUMBER_OF_BUTTONS; this_LED++){
+      if (this_LED == button_number){
+          digitalWrite(panel_buttons[this_LED].LED, HIGH);
+      } else {
+          digitalWrite(panel_buttons[this_LED].LED, LOW);
+      }
     }
   }
-
 }
